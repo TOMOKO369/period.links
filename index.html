@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生理周期管理 - Period Tracker</title>
+    
+    <!-- OGP -->
+    <meta property="og:title" content="生理周期管理 - Period Tracker">
+    <meta property="og:description" content="生理周期を簡単に管理できるツールです。平均周期の設定、記録の管理、周期のずれを視覚的に確認できます。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="">
+    <meta property="og:image" content="">
+    <meta property="og:site_name" content="Period Tracker">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="生理周期管理 - Period Tracker">
+    <meta name="twitter:description" content="生理周期を簡単に管理できるツールです。平均周期の設定、記録の管理、周期のずれを視覚的に確認できます。">
+    <meta name="twitter:image" content="">
+    
+    <meta name="description" content="生理周期を簡単に管理できるツールです。平均周期の設定、記録の管理、周期のずれを視覚的に確認できます。">
+    <meta name="keywords" content="生理周期,月経,管理,tracker,period,menstrual">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo UI', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #ecbbb5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: none;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #bee0cc;
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bee0cc;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #e99bc1;
+        }
+
+        .btn {
+            background: #e99bc1;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #d4839b;
+        }
+
+        .records-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .record-item {
+            background: #bee0cc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .record-item.delayed {
+            background: #e99bc1;
+        }
+
+        .record-info {
+            flex: 1;
+        }
+
+        .record-dates {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .cycle-info {
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .cycle-info.normal {
+            color: #333;
+        }
+
+        .cycle-info.delayed {
+            color: #333;
+        }
+
+        .delete-btn {
+            background: #e99bc1;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #d4839b;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: #bee0cc;
+            color: #333;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background-color: #bee0cc;
+            color: #333;
+        }
+
+        .alert-warning {
+            background-color: #e99bc1;
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .record-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .delete-btn {
+                align-self: flex-end;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌸 生理周期管理</h1>
+            <p class="subtitle">健康的な生活をサポートします</p>
+        </header>
+
+        <div class="card">
+            <h2>⚙️ 設定</h2>
+            <div class="form-group">
+                <label for="averageCycle">平均周期（日数）</label>
+                <input type="number" id="averageCycle" min="20" max="40" value="28" placeholder="例: 28">
+            </div>
+            <button class="btn" onclick="saveSettings()">設定を保存</button>
+        </div>
+
+        <div class="card">
+            <h2>📝 新しい記録を追加</h2>
+            <div class="form-group">
+                <label for="startDate">生理開始日</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="form-group">
+                <label for="endDate">生理終了日</label>
+                <input type="date" id="endDate">
+            </div>
+            <button class="btn" onclick="addRecord()">記録を追加</button>
+        </div>
+
+        <div class="card">
+            <h2>📊 統計情報</h2>
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number" id="totalRecords">0</span>
+                    <span class="stat-label">総記録数</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="avgCycleLength">-</span>
+                    <span class="stat-label">平均周期</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="lastCycleLength">-</span>
+                    <span class="stat-label">前回周期</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="nextPredicted">-</span>
+                    <span class="stat-label">次回予測</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 記録一覧</h2>
+            <div id="recordsContainer" class="records-container">
+                <div class="empty-state">
+                    まだ記録がありません。<br>
+                    上記のフォームから記録を追加してください。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let settings = {
+            averageCycle: 28
+        };
+        let records = [];
+
+        function loadData() {
+            const savedSettings = localStorage.getItem('periodSettings');
+            const savedRecords = localStorage.getItem('periodRecords');
+            
+            if (savedSettings) {
+                settings = JSON.parse(savedSettings);
+                document.getElementById('averageCycle').value = settings.averageCycle;
+            }
+            
+            if (savedRecords) {
+                records = JSON.parse(savedRecords);
+            }
+            
+            updateDisplay();
+        }
+
+        function saveData() {
+            localStorage.setItem('periodSettings', JSON.stringify(settings));
+            localStorage.setItem('periodRecords', JSON.stringify(records));
+        }
+
+        function saveSettings() {
+            const averageCycle = parseInt(document.getElementById('averageCycle').value);
+            
+            if (averageCycle < 20 || averageCycle > 40) {
+                alert('平均周期は20〜40日の範囲で入力してください。');
+                return;
+            }
+            
+            settings.averageCycle = averageCycle;
+            saveData();
+            updateDisplay();
+            
+            showAlert('設定が保存されました。', 'info');
+        }
+
+        function addRecord() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate) {
+                alert('生理開始日を入力してください。');
+                return;
+            }
+            
+            if (!endDate) {
+                alert('生理終了日を入力してください。');
+                return;
+            }
+            
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            
+            if (end < start) {
+                alert('終了日は開始日より後の日付を選択してください。');
+                return;
+            }
+            
+            const record = {
+                id: Date.now(),
+                startDate: startDate,
+                endDate: endDate,
+                duration: Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1
+            };
+            
+            records.push(record);
+            records.sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
+            
+            saveData();
+            updateDisplay();
+            
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            
+            showAlert('記録が追加されました。', 'info');
+        }
+
+        function deleteRecord(id) {
+            if (confirm('この記録を削除しますか？')) {
+                records = records.filter(record => record.id !== id);
+                saveData();
+                updateDisplay();
+                showAlert('記録が削除されました。', 'info');
+            }
+        }
+
+        function calculateCycleLength(record, previousRecord) {
+            if (!previousRecord) return null;
+            
+            const currentStart = new Date(record.startDate);
+            const previousStart = new Date(previousRecord.startDate);
+            
+            return Math.ceil((currentStart - previousStart) / (1000 * 60 * 60 * 24));
+        }
+
+        function updateDisplay() {
+            updateStats();
+            updateRecordsList();
+        }
+
+        function updateStats() {
+            const totalRecords = records.length;
+            document.getElementById('totalRecords').textContent = totalRecords;
+            
+            if (totalRecords === 0) {
+                document.getElementById('avgCycleLength').textContent = '-';
+                document.getElementById('lastCycleLength').textContent = '-';
+                document.getElementById('nextPredicted').textContent = '-';
+                return;
+            }
+            
+            if (totalRecords === 1) {
+                document.getElementById('avgCycleLength').textContent = '-';
+                document.getElementById('lastCycleLength').textContent = '-';
+            } else {
+                const cycleLengths = [];
+                for (let i = 0; i < totalRecords - 1; i++) {
+                    const cycleLength = calculateCycleLength(records[i], records[i + 1]);
+                    if (cycleLength) cycleLengths.push(cycleLength);
+                }
+                
+                if (cycleLengths.length > 0) {
+                    const avgCycle = Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length);
+                    document.getElementById('avgCycleLength').textContent = avgCycle + '日';
+                    document.getElementById('lastCycleLength').textContent = cycleLengths[0] + '日';
+                } else {
+                    document.getElementById('avgCycleLength').textContent = '-';
+                    document.getElementById('lastCycleLength').textContent = '-';
+                }
+            }
+            
+            if (totalRecords > 0) {
+                const lastRecord = records[0];
+                const lastStartDate = new Date(lastRecord.startDate);
+                const nextPredicted = new Date(lastStartDate);
+                nextPredicted.setDate(nextPredicted.getDate() + settings.averageCycle);
+                
+                const today = new Date();
+                if (nextPredicted > today) {
+                    const daysUntil = Math.ceil((nextPredicted - today) / (1000 * 60 * 60 * 24));
+                    document.getElementById('nextPredicted').textContent = daysUntil + '日後';
+                } else {
+                    const daysOverdue = Math.ceil((today - nextPredicted) / (1000 * 60 * 60 * 24));
+                    document.getElementById('nextPredicted').textContent = daysOverdue + '日遅れ';
+                }
+            } else {
+                document.getElementById('nextPredicted').textContent = '-';
+            }
+        }
+
+        function updateRecordsList() {
+            const container = document.getElementById('recordsContainer');
+            
+            if (records.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        まだ記録がありません。<br>
+                        上記のフォームから記録を追加してください。
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            for (let i = 0; i < records.length; i++) {
+                const record = records[i];
+                const previousRecord = records[i + 1];
+                const cycleLength = calculateCycleLength(record, previousRecord);
+                
+                let cycleInfo = '';
+                let itemClass = 'record-item';
+                
+                if (cycleLength) {
+                    const deviation = Math.abs(cycleLength - settings.averageCycle);
+                    if (deviation > 7) {
+                        cycleInfo = `周期: ${cycleLength}日 (${deviation}日のずれ)`;
+                        itemClass += ' delayed';
+                    } else {
+                        cycleInfo = `周期: ${cycleLength}日 (正常範囲)`;
+                    }
+                } else {
+                    cycleInfo = '周期: 計算不可';
+                }
+                
+                const startDateFormatted = new Date(record.startDate).toLocaleDateString('ja-JP');
+                const endDateFormatted = new Date(record.endDate).toLocaleDateString('ja-JP');
+                
+                html += `
+                    <div class="${itemClass}">
+                        <div class="record-info">
+                            <div class="record-dates">
+                                ${startDateFormatted} 〜 ${endDateFormatted} (${record.duration}日間)
+                            </div>
+                            <div class="cycle-info ${cycleLength && Math.abs(cycleLength - settings.averageCycle) > 7 ? 'delayed' : 'normal'}">
+                                ${cycleInfo}
+                            </div>
+                        </div>
+                        <button class="delete-btn" onclick="deleteRecord(${record.id})">削除</button>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const container = document.querySelector('.container');
+            const firstCard = container.querySelector('.card');
+            container.insertBefore(alertDiv, firstCard);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+        });
+    </script>
+</body>
+</html>
